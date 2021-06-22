@@ -5,15 +5,25 @@ import 'package:location/location.dart';
 class LocationUtil {
 
   static Future<String> getAddress(LatLng latLng) async {
-    var coordinate = Coordinates(latLng.latitude, latLng.longitude);
-    var addresses =
-        await Geocoder.local.findAddressesFromCoordinates(coordinate);
-    var address = addresses.first;
-    return address.addressLine;
+    try {
+      var coordinate = Coordinates(latLng.latitude, latLng.longitude);
+      var addresses =
+      await Geocoder.local.findAddressesFromCoordinates(coordinate);
+      var address = addresses.first;
+      return address.addressLine;
+    } catch (e) {
+      print(e);
+      return '';
+    }
   }
 
   static Future<LatLng> getCurrentLatLng() async {
-    var location = await Location().getLocation();
-    return LatLng(location.latitude, location.longitude);
+    try {
+      var location = await Location().getLocation();
+      return LatLng(location.latitude, location.longitude);
+    } catch (e) {
+      print(e);
+      return LatLng(0.0, 0.0);
+    }
   }
 }

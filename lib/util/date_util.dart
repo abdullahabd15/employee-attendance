@@ -1,4 +1,5 @@
 import 'package:employee_attendance/enum/language_enum.dart';
+import 'package:intl/intl.dart';
 
 class DateUtil {
   static const dayInIndonesian = [
@@ -128,5 +129,27 @@ class DateUtil {
     if (dateTime == null || dateTime == '') return '';
     var splitString = dateTime.split(',');
     return '${splitString[0]},${splitString[1]}';
+  }
+
+  static String getHourDifference(DateTime dtmFrom, DateTime dtmTo) {
+    try {
+      var diff = dtmFrom.difference(dtmTo).inMinutes;
+      var hour = diff ~/ 60;
+      var minutes = diff % 60;
+      return '$hour Jam $minutes Menit';
+    } catch (e) {
+      return '';
+    }
+  }
+
+  static DateTime toDateTime(String dtm) {
+    try {
+      var dateFormat = DateFormat("EEEE, dd MMMM yyyy, HH:mm");
+      var dateTime = dateFormat.parse(dtm);
+      return dateTime;
+    } catch (e) {
+      print(e);
+      return DateTime.now();
+    }
   }
 }

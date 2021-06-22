@@ -3,23 +3,49 @@ import 'package:employee_attendance/model/employee.dart';
 import 'package:employee_attendance/util/date_util.dart';
 import 'package:flutter/material.dart';
 
-class HistoryDetailScreen extends StatelessWidget {
+class HistoryDetailScreen extends StatefulWidget {
   final Attendance attendance;
   final Employee employee;
 
-  const HistoryDetailScreen({this.attendance, this.employee});
+  HistoryDetailScreen({this.attendance, this.employee});
+
+  @override
+  _HistoryDetailScreenState createState() => _HistoryDetailScreenState();
+}
+
+class _HistoryDetailScreenState extends State<HistoryDetailScreen> {
+  String _dateInIndonesian;
+  String _date;
+  String _workDuration;
+  String _overTimeDuration;
+  String _lateTimeDuration;
+
+  @override
+  void initState() {
+    super.initState();
+    setState(() {
+      _dateInIndonesian = DateUtil.toIndonesian(widget.attendance.dtmIn);
+      _date = DateUtil.getDate(_dateInIndonesian);
+      _workDuration = _getWorkDuration(widget.attendance.dtmIn, widget.attendance.dtmOut);
+      _overTimeDuration = _getOverTimeDuration(widget.attendance.dtmOut);
+      _lateTimeDuration = _getLateTimeDuration(widget.attendance.dtmIn);
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
-    var dateInIndonesian = DateUtil.toIndonesian(attendance.dtmIn);
-    var date = DateUtil.getDate(dateInIndonesian);
     return Scaffold(
-      appBar: AppBar(),
+      appBar: AppBar(
+        title: Text('Detail Riwayat'),
+      ),
       body: Container(
-        padding: const EdgeInsets.only(top: 15.0, left: 16.0, right: 16.0),
+        padding: const EdgeInsets.only(left: 16.0, right: 16.0),
         child: SingleChildScrollView(
           child: Column(
             children: [
+              SizedBox(
+                height: 15.0,
+              ),
               Row(
                 children: [
                   CircleAvatar(
@@ -30,16 +56,17 @@ class HistoryDetailScreen extends StatelessWidget {
                   ),
                   Flexible(
                     child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          employee.fullName,
+                          widget.employee.fullName,
                           style: TextStyle(
                               fontSize: 20.0, fontWeight: FontWeight.w600),
                         ),
                         SizedBox(
                           height: 5.0,
                         ),
-                        Text(employee.position ?? '-'),
+                        Text(widget.employee.position ?? '-'),
                       ],
                     ),
                   ),
@@ -56,7 +83,7 @@ class HistoryDetailScreen extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text('No. Karyawan'),
-                  Text(employee.employeeNumber),
+                  Text(widget.employee.employeeNumber),
                 ],
               ),
               SizedBox(
@@ -66,7 +93,7 @@ class HistoryDetailScreen extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text('Durasi Kerja'),
-                  Text('-'),
+                  Text(_workDuration),
                 ],
               ),
               SizedBox(
@@ -76,7 +103,7 @@ class HistoryDetailScreen extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text('Durasi Lembur'),
-                  Text('-'),
+                  Text(_overTimeDuration),
                 ],
               ),
               SizedBox(
@@ -85,11 +112,19 @@ class HistoryDetailScreen extends StatelessWidget {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text('Terlambat'),
-                  Text('-'),
+                  Text(
+                    'Terlambat',
+                    style: TextStyle(color: Colors.red),
+                  ),
+                  Text(
+                    _lateTimeDuration,
+                    style: TextStyle(color: Colors.red),
+                  ),
                 ],
               ),
-              SizedBox(height: 5.0,),
+              SizedBox(
+                height: 5.0,
+              ),
               Divider(
                 thickness: 1.5,
               ),
@@ -97,7 +132,7 @@ class HistoryDetailScreen extends StatelessWidget {
                 height: 15.0,
               ),
               Text(
-                date,
+                _date,
                 style: TextStyle(fontSize: 18.0, fontWeight: FontWeight.w600),
               ),
               SizedBox(
@@ -110,9 +145,9 @@ class HistoryDetailScreen extends StatelessWidget {
                     width: 5.0,
                   ),
                   Text(
-                    attendance.dtmIn == null
+                    widget.attendance.dtmIn == null
                         ? '-'
-                        : DateUtil.getTime(attendance.dtmIn),
+                        : DateUtil.getTime(widget.attendance.dtmIn),
                     style: TextStyle(fontWeight: FontWeight.w600),
                   ),
                 ],
@@ -130,7 +165,7 @@ class HistoryDetailScreen extends StatelessWidget {
                   SizedBox(
                     width: 5.0,
                   ),
-                  Flexible(child: Text(attendance.addressIn ?? '-')),
+                  Flexible(child: Text(widget.attendance.addressIn ?? '-')),
                 ],
               ),
               SizedBox(
@@ -143,9 +178,9 @@ class HistoryDetailScreen extends StatelessWidget {
                     width: 5.0,
                   ),
                   Text(
-                    attendance.dtmOut == null
+                    widget.attendance.dtmOut == null
                         ? '-'
-                        : DateUtil.getTime(attendance.dtmOut),
+                        : DateUtil.getTime(widget.attendance.dtmOut),
                     style: TextStyle(fontWeight: FontWeight.w600),
                   ),
                 ],
@@ -163,10 +198,12 @@ class HistoryDetailScreen extends StatelessWidget {
                   SizedBox(
                     width: 5.0,
                   ),
-                  Flexible(child: Text(attendance.addressOut ?? '-')),
+                  Flexible(child: Text(widget.attendance.addressOut ?? '-')),
                 ],
               ),
-              SizedBox(height: 5.0,),
+              SizedBox(
+                height: 5.0,
+              ),
               Divider(
                 thickness: 1.5,
               ),
@@ -187,7 +224,7 @@ class HistoryDetailScreen extends StatelessWidget {
                 ),
                 constraints: BoxConstraints(minHeight: 100.0),
                 child: Text(
-                  attendance.dailyReport ?? '',
+                  widget.attendance.dailyReport ?? '',
                 ),
               ),
               SizedBox(
@@ -198,5 +235,38 @@ class HistoryDetailScreen extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  String _getWorkDuration(String dtmIn, String dtmOut) {
+    try {
+      var dtmFrom =
+          dtmOut == null ? DateTime.now() : DateUtil.toDateTime(dtmOut);
+      var dtmTo = DateUtil.toDateTime(dtmIn);
+      return DateUtil.getHourDifference(dtmFrom, dtmTo);
+    } catch (e) {
+      return '-';
+    }
+  }
+
+  String _getOverTimeDuration(String dateTime) {
+    try {
+      var dtm = DateUtil.toDateTime(dateTime);
+      var dtmOut = DateTime(dtm.year, dtm.month, dtm.day, 17, 0);
+      if (dateTime == null || dtm.isBefore(dtmOut) || dtm.isAtSameMomentAs(dtmOut)) return '-';
+      return DateUtil.getHourDifference(dtm, dtmOut);
+    } catch (e) {
+      return '-';
+    }
+  }
+
+  String _getLateTimeDuration(String dateTime) {
+    try {
+      var dtm = DateUtil.toDateTime(dateTime);
+      var dtmIn = DateTime(dtm.year, dtm.month, dtm.day, 8, 0);
+      if (dtm.isBefore(dtmIn) || dtm.isAtSameMomentAs(dtmIn)) return '-';
+      return DateUtil.getHourDifference(dtm, dtmIn);
+    } catch (e) {
+      return '-';
+    }
   }
 }
