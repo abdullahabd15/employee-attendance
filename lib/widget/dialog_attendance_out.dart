@@ -1,17 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:toast/toast.dart';
 
 import 'loading_button.dart';
 
 class DialogAttendanceOut extends StatelessWidget {
   final String dtmOut;
-  final String address;
-  final LatLng latLng;
-  final Function(String dailyReport) onButtonClicked;
+  final Function onButtonClicked;
 
-  const DialogAttendanceOut(
-      {this.dtmOut, this.address, this.latLng, this.onButtonClicked});
+  const DialogAttendanceOut({this.dtmOut, this.onButtonClicked});
 
   @override
   Widget build(BuildContext context) {
@@ -55,12 +51,7 @@ class DialogAttendanceOut extends StatelessWidget {
                   );
                   return;
                 }
-                state.setLoadingState(true);
-                Future.delayed(Duration(milliseconds: 1500)).then((value) {
-                  state.setLoadingState(false);
-                  Navigator.pop(context);
-                  onButtonClicked.call(dailyReport);
-                });
+                onButtonClicked.call(context, state, dailyReport);
               },
             ),
             SizedBox(

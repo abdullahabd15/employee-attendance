@@ -33,6 +33,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
   AttendanceEnum _attendanceState = AttendanceEnum.ALREADY_OUT;
   String _dtmIn = '';
   String _dtmOut = '';
+  GoogleMap _gMaps;
 
   @override
   void initState() {
@@ -43,6 +44,23 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
       zoom: 15.0,
     );
     _getTodayAttendance(_employee.id);
+    _gMaps = GoogleMap(
+      initialCameraPosition: _cameraPosition,
+      mapType: MapType.normal,
+      zoomControlsEnabled: false,
+      myLocationEnabled: true,
+      myLocationButtonEnabled: false,
+      mapToolbarEnabled: false,
+      padding: const EdgeInsets.only(bottom: 130),
+      markers: _markers,
+      onMapCreated: (controller) => _mapController = controller,
+    );
+  }
+
+  @override
+  void setState(fn) {
+    super.setState(fn);
+    initState();
   }
 
   @override
@@ -50,17 +68,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
     return Scaffold(
       body: Stack(
         children: [
-          GoogleMap(
-            initialCameraPosition: _cameraPosition,
-            mapType: MapType.normal,
-            zoomControlsEnabled: false,
-            myLocationEnabled: true,
-            myLocationButtonEnabled: false,
-            mapToolbarEnabled: false,
-            padding: const EdgeInsets.only(bottom: 130),
-            markers: _markers,
-            onMapCreated: (controller) => _mapController = controller,
-          ),
+          _gMaps,
           Positioned(
             bottom: 0.0,
             left: 0.0,
@@ -136,7 +144,7 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
     );
   }
 
-  void _showDialogDailyReport(String dtmOut, LatLng latLng, String address) {
+  void _showDialogDailyReport(String dtmOut) {
     if (context == null) return;
     showModalBottomSheet(
         isScrollControlled: true,
@@ -150,10 +158,15 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
         builder: (context) {
           return DialogAttendanceOut(
             dtmOut: dtmOut,
-            latLng: latLng,
-            address: address,
-            onButtonClicked: (dailyReport) {
-              _submitAttendanceOut(dtmOut, latLng, address, dailyReport);
+            onButtonClicked: (context, state, dailyReport) {
+              state.setLoadingState(true);
+              _getAddressData((latLng, address) {
+                Future.delayed(Duration(milliseconds: 1000)).then((value) {
+                  state.setLoadingState(false);
+                  Navigator.pop(context);
+                  _submitAttendanceOut(dtmOut, latLng, address, dailyReport);
+                });
+              });
             },
           );
         });
@@ -161,35 +174,34 @@ class _AttendanceScreenState extends State<AttendanceScreen> {
 
   void _submitAttendance(LoadingState state) async {
     var dateTime = DateUtil.getCurrentDateTime(language: LanguageEnum.ENG);
-    _getAddressData((latLng, address) {
-      _attendanceState == AttendanceEnum.ATTENDED
-          ? _showDialogDailyReport(dateTime, latLng, address)
-          : _submitAttendanceIn(state, dateTime, latLng, address);
-    });
+    _attendanceState == AttendanceEnum.ATTENDED
+        ? _showDialogDailyReport(dateTime)
+        : _submitAttendanceIn(state, dateTime);
   }
 
-  void _submitAttendanceIn(
-      LoadingState state, String dtmIn, LatLng latLng, String address) async {
+  void _submitAttendanceIn(LoadingState state, String dtmIn) async {
     state.setLoadingState(true);
-    await Future.delayed(Duration(milliseconds: 1500));
-    var attendance = Attendance(
-      employeeId: _employee.id,
-      dtmIn: dtmIn,
-      addressIn: address,
-      latitudeIn: latLng.latitude,
-      longitudeIn: latLng.longitude,
-      dateCreated: DateTime.now().toString(),
-    );
-    _attendanceRepository.submitAttendanceIn(attendance);
-    var marker =
-        await MapUtil.createMarker(latLng, 'In', 'Absen Masuk', address);
-    state.setLoadingState(false);
-    setState(() {
-      _attendanceState = AttendanceEnum.ATTENDED;
-      _dtmIn = dtmIn;
-      _todayAttendance = attendance;
-      _markers.clear();
-      _markers.add(marker);
+    await Future.delayed(Duration(milliseconds: 1000));
+    _getAddressData((latLng, address) async {
+      var attendance = Attendance(
+        employeeId: _employee.id,
+        dtmIn: dtmIn,
+        addressIn: address,
+        latitudeIn: latLng.latitude,
+        longitudeIn: latLng.longitude,
+        dateCreated: DateTime.now().toString(),
+      );
+      _attendanceRepository.submitAttendanceIn(attendance);
+      var marker =
+          await MapUtil.createMarker(latLng, 'In', 'Absen Masuk', address);
+      state.setLoadingState(false);
+      setState(() {
+        _attendanceState = AttendanceEnum.ATTENDED;
+        _dtmIn = dtmIn;
+        _todayAttendance = attendance;
+        _markers.clear();
+        _markers.add(marker);
+      });
     });
   }
 
