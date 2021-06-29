@@ -46,7 +46,7 @@ class ProfileScreen extends StatelessWidget {
                         child: CircleAvatar(
                           radius: _screenHeight * .065,
                           foregroundImage:
-                              AssetImage('assets/images/iklimah.jpg'),
+                              AssetImage('assets/images/user.png'),
                         ),
                       ),
                     ],

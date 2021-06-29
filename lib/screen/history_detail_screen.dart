@@ -50,7 +50,7 @@ class _HistoryDetailScreenState extends State<HistoryDetailScreen> {
                 children: [
                   CircleAvatar(
                       radius: 40,
-                      foregroundImage: AssetImage('assets/images/iklimah.jpg')),
+                      foregroundImage: AssetImage('assets/images/user.png')),
                   SizedBox(
                     width: 15.0,
                   ),

@@ -47,11 +47,11 @@ class Employee {
     return Employee(
         id: 1,
         employeeNumber: '123456',
-        fullName: 'Iklimah',
+        fullName: 'Abdullah',
         position: 'Software Engineer',
         division: 'IT',
-        email: 'iklimah.abdullah22@gmail.com',
-        phoneNumber: '089527762200',
+        email: 'abdullahabd915@gmail.com',
+        phoneNumber: '0898123456678',
         address:
             'Jln. Pakubuwono VI no 24, Kelurahan Gunung, Kecamatan Kebayoran Baru, Kota Jakarta Selatan, DKI Jakarta');
   }
